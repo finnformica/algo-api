@@ -55,14 +55,14 @@ def mean_reversion_bollinger_band(ticker, start):
         'startdate': start
     }
 
-def moving_average_crossover(ticker, start):
+def moving_average_crossover(ticker, start, ma_fast, ma_slow):
     df = yf.download(ticker, start=start)
 
     if df.empty:
         return responses.INVALID_TICKER
     
-    df['ma_20'] = df.Close.rolling(20).mean()
-    df['ma_50'] = df.Close.rolling(50).mean()
+    df['ma_fast'] = df.Close.rolling(ma_fast).mean()
+    df['ma_slow'] = df.Close.rolling(ma_slow).mean()
     df.dropna(inplace=True)
 
     position = False
@@ -72,14 +72,14 @@ def moving_average_crossover(ticker, start):
     for i in range(len(df)):
         print(i)
         if not position:
-            if df.ma_20.iloc[i] > df.ma_50.iloc[i] and df.ma_20.iloc[i - 1] < df.ma_50.iloc[i - 1]:
+            if df.ma_fast.iloc[i] > df.ma_slow.iloc[i] and df.ma_fast.iloc[i - 1] < df.ma_slow.iloc[i - 1]:
                 
                 buydates.append(df.index[i])
                 buyprices.append(df.Open[i])
                 position = True
         
         if position:
-            if df.ma_20.iloc[i] < df.ma_50.iloc[i] and df.ma_20.iloc[i - 1] > df.ma_50.iloc[i - 1]:
+            if df.ma_fast.iloc[i] < df.ma_slow.iloc[i] and df.ma_fast.iloc[i - 1] > df.ma_slow.iloc[i - 1]:
                 selldates.append(df.index[i])
                 sellprices.append(df.Open[i])
                 position = False
