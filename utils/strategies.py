@@ -5,7 +5,7 @@ import ta
 
 from core.config import responses
 
-def mean_reversion_bollinger_band(ticker, start):
+def mean_reversion_bollinger_band(ticker, start, stop_loss):
     df = yf.download(ticker, start=start)
 
     if df.empty:
@@ -40,7 +40,7 @@ def mean_reversion_bollinger_band(ticker, start):
             position = True
         
         if position:
-            if row['signal'] == 'Sell' or row.shifted_close < 0.95 * buyprices[-1]:
+            if row['signal'] == 'Sell' or row.shifted_close < (1 - stop_loss) * buyprices[-1]:
                 selldates.append(index)
                 sellprices.append(row.Open)
                 position = False

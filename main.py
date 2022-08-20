@@ -8,8 +8,8 @@ app = FastAPI(
 )
 
 @app.get("/mean-reversion-bollinger-band")
-def mean_reversion_bollinger_band(ticker="MSFT", start="2019-01-01"):
-    return utils.strategies.mean_reversion_bollinger_band(ticker, start)
+def mean_reversion_bollinger_band(ticker="MSFT", start="2019-01-01", stop_loss=0.05):
+    return utils.strategies.mean_reversion_bollinger_band(ticker, start, stop_loss)
 
 @app.get("/moving-average-crossover")
 def moving_average_crossover(ticker="MSFT", start="2019-01-01", ma_fast=20, ma_slow=50):
