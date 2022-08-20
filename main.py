@@ -12,5 +12,9 @@ def mean_reversion_bollinger_band(ticker="MSFT", start="2019-01-01"):
     return utils.strategies.mean_reversion_bollinger_band(ticker, start)
 
 @app.get("/moving-average-crossover")
-def moving_average_crossover(ticker="MSFT", start="2019-01-01", ma_fast=50, ma_slow=200):
+def moving_average_crossover(ticker="MSFT", start="2019-01-01", ma_fast=20, ma_slow=50):
     return utils.strategies.moving_average_crossover(ticker, start, ma_fast, ma_slow)
+
+@app.get("/macd")
+def macd(ticker="MSFT", start="2022-01-01"):
+    return utils.strategies.macd(ticker, start)

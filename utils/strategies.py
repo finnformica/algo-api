@@ -70,7 +70,6 @@ def moving_average_crossover(ticker, start, ma_fast, ma_slow):
     buyprices, sellprices = [], []
 
     for i in range(len(df)):
-        print(i)
         if not position:
             if df.ma_fast.iloc[i] > df.ma_slow.iloc[i] and df.ma_fast.iloc[i - 1] < df.ma_slow.iloc[i - 1]:
                 
@@ -80,6 +79,41 @@ def moving_average_crossover(ticker, start, ma_fast, ma_slow):
         
         if position:
             if df.ma_fast.iloc[i] < df.ma_slow.iloc[i] and df.ma_fast.iloc[i - 1] > df.ma_slow.iloc[i - 1]:
+                selldates.append(df.index[i])
+                sellprices.append(df.Open[i])
+                position = False
+    
+    return {
+        'close': df.Close,
+        'buydates': buydates,
+        'selldates': selldates,
+        'buyprices': buyprices,
+        'sellprices': sellprices,
+        'ticker': ticker,
+        'startdate': start
+    }
+
+def macd(ticker, start):
+    df = yf.download(ticker, start=start)
+
+    df['ema_12'] = df.Close.ewm(span=12).mean()
+    df['ema_26'] = df.Close.ewm(span=26).mean()
+    df['macd'] = df.ema_12 - df.ema_26
+    df['signal'] = df.macd.ewm(span=9).mean()
+
+    position = False
+    buydates, selldates = [], []
+    buyprices, sellprices = [], []
+
+    for i in range(2, len(df)):
+        if not position:
+            if df.macd.iloc[i] > df.signal.iloc[i] and df.macd.iloc[i - 1] < df.signal.iloc[i - 1]:
+                buydates.append(df.index[i])
+                buyprices.append(df.Open[i])
+                position = True
+        
+        if position:
+            if df.macd.iloc[i] < df.signal.iloc[i] and df.macd.iloc[i - 1] > df.signal.iloc[i - 1]:
                 selldates.append(df.index[i])
                 sellprices.append(df.Open[i])
                 position = False
