@@ -2,8 +2,12 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 import ta
+pd.options.mode.chained_assignment = None
 
 from core.config import responses
+
+def calculate_pnl(sellprices, buyprices):
+    return (pd.Series([(sell - buy) / buy for sell, buy in zip(sellprices, buyprices)]) + 1).prod() - 1
 
 def mean_reversion_bollinger_band(ticker, start, stop_loss):
     df = yf.download(ticker, start=start)
@@ -46,13 +50,23 @@ def mean_reversion_bollinger_band(ticker, start, stop_loss):
                 position = False
     
     return {
-        'close': df.Close,
-        'buydates': buydates,
-        'selldates': selldates,
-        'buyprices': buyprices,
-        'sellprices': sellprices,
-        'ticker': ticker,
-        'startdate': start
+        'data': {
+            'close': df.Close,
+            'upper_bb': df.upper_bb,
+            'lower_bb': df.lower_bb
+        },
+        'positions': {
+            'buydates': buydates,
+            'selldates': selldates,
+            'buyprices': buyprices,
+            'sellprices': sellprices
+        },
+        'info': {
+            'ticker': ticker,
+            'startdate': start,
+            'pnl': calculate_pnl(sellprices, buyprices),
+            'type': 'overlay'
+        }
     }
 
 def moving_average_crossover(ticker, start, ma_fast, ma_slow):
@@ -84,13 +98,23 @@ def moving_average_crossover(ticker, start, ma_fast, ma_slow):
                 position = False
     
     return {
-        'close': df.Close,
-        'buydates': buydates,
-        'selldates': selldates,
-        'buyprices': buyprices,
-        'sellprices': sellprices,
-        'ticker': ticker,
-        'startdate': start
+        'data': {
+            'close': df.Close,
+            'ma_fast': df.ma_fast,
+            'ma_slow': df.ma_slow
+        },
+        'positions': {
+            'buydates': buydates,
+            'selldates': selldates,
+            'buyprices': buyprices,
+            'sellprices': sellprices
+        },
+        'info': {
+            'ticker': ticker,
+            'startdate': start,
+            'pnl': calculate_pnl(sellprices, buyprices),
+            'type': 'overlay'
+        }
     }
 
 def macd(ticker, start):
@@ -119,11 +143,93 @@ def macd(ticker, start):
                 position = False
     
     return {
-        'close': df.Close,
-        'buydates': buydates,
-        'selldates': selldates,
-        'buyprices': buyprices,
-        'sellprices': sellprices,
-        'ticker': ticker,
-        'startdate': start
+        'data': {
+            'close': df.Close,
+            'macd': df.macd,
+            'signal': df.signal
+        },
+        'positions': {
+            'buydates': buydates,
+            'selldates': selldates,
+            'buyprices': buyprices,
+            'sellprices': sellprices
+        },
+        'info': {
+            'ticker': ticker,
+            'startdate': start,
+            'pnl': calculate_pnl(sellprices, buyprices),
+            'type': 'oscillator'
+        }
+    }
+
+
+def supertrend(ticker, start, period, multiplier):
+    df = yf.download(ticker, start=start)
+
+    # calculate true range
+    df['previous_close'] = df.Close.shift()
+    df['H-L'] = df.High - df.Low
+    df['H-Cp'] = abs(df.High - df.previous_close)
+    df['L-Cp'] = abs(df.Low - df.previous_close)
+    df.dropna(inplace=True)
+    df['tr'] = df[['H-L', 'H-Cp', 'L-Cp']].max(axis=1)
+
+    # calculate average true range
+    df['atr'] = df['tr'].rolling(14).mean()
+
+    # calculate basic upper and lower bands
+    df['upperband'] = ((df.High + df.Low) / 2) + (multiplier * df['atr'])
+    df['lowerband'] = ((df.High + df.Low) / 2) - (multiplier * df['atr'])
+
+    df.dropna(inplace=True)
+
+    df['in_uptrend'] = True
+
+    position = False
+    buydates, selldates = [], []
+    buyprices, sellprices = [], []
+
+    # calculate supertrend upper and lower bands and generate buy / sell signals
+    for i in range(len(df)):
+        if df.Close.iloc[i] > df.upperband.iloc[i-1] and not position:
+            df.in_uptrend.iloc[i] = True
+
+            buydates.append(df.index[i])
+            buyprices.append(df.Open.iloc[i])
+            position = True
+        
+        elif df.Close.iloc[i] < df.lowerband.iloc[i-1] and position:
+            df.in_uptrend.iloc[i] = False
+
+            selldates.append(df.index[i])
+            sellprices.append(df.Open.iloc[i])
+            position = False
+        
+        else:
+            df.in_uptrend.iloc[i] = df.in_uptrend.iloc[i-1]
+
+            if df.in_uptrend.iloc[i] and df.lowerband.iloc[i] < df.lowerband.iloc[i-1]:
+                df.lowerband.iloc[i] = df.lowerband.iloc[i-1]
+
+            if not df.in_uptrend.iloc[i] and df.upperband.iloc[i] > df.upperband.iloc[i-1]:
+                df.upperband.iloc[i] = df.upperband.iloc[i-1]
+
+    return {
+        'data': {
+            'close': df.Close,
+            'upperband': df.upperband,
+            'lowerband': df.lowerband
+        },
+        'positions': {
+            'buydates': buydates,
+            'selldates': selldates,
+            'buyprices': buyprices,
+            'sellprices': sellprices
+        },
+        'info': {
+            'ticker': ticker,
+            'startdate': start,
+            'pnl': calculate_pnl(sellprices, buyprices),
+            'type': 'overlay'
+        }
     }
