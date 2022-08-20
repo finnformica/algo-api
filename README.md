@@ -43,7 +43,7 @@ pip3 install requirements.txt
 uvicorn main:app --reload
 ```
 
-5. Navigate to **localhost:8000**
+5. Navigate to **localhost:8000/docs** for the API documentation
 
 ## Features
 
