@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+yfinance
+ta
+pandas
+numpy
