@@ -4,10 +4,8 @@ import numpy as np
 import ta
 pd.options.mode.chained_assignment = None
 
+from core.utils import calculate_pnl, generate_buy_sell_dates, convert_to_json
 from core.config import responses
-
-def calculate_pnl(sellprices, buyprices):
-    return (pd.Series([(sell - buy) / buy for sell, buy in zip(sellprices, buyprices)]) + 1).prod() - 1
 
 def mean_reversion_bollinger_band(ticker, start, stop_loss):
     df = yf.download(ticker, start=start)
@@ -69,7 +67,7 @@ def mean_reversion_bollinger_band(ticker, start, stop_loss):
         }
     }
 
-def moving_average_crossover(ticker, start, ma_fast, ma_slow):
+def moving_average_crossover(ticker, start, stop_loss, ma_fast, ma_slow):
     df = yf.download(ticker, start=start)
 
     if df.empty:
@@ -77,105 +75,94 @@ def moving_average_crossover(ticker, start, ma_fast, ma_slow):
     
     df['ma_fast'] = df.Close.rolling(ma_fast).mean()
     df['ma_slow'] = df.Close.rolling(ma_slow).mean()
+
     df.dropna(inplace=True)
 
-    position = False
-    buydates, selldates = [], []
-    buyprices, sellprices = [], []
-
-    for i in range(len(df)):
-        if not position:
-            if df.ma_fast.iloc[i] > df.ma_slow.iloc[i] and df.ma_fast.iloc[i - 1] < df.ma_slow.iloc[i - 1]:
-                
-                buydates.append(df.index[i])
-                buyprices.append(df.Open[i])
-                position = True
-        
-        if position:
-            if df.ma_fast.iloc[i] < df.ma_slow.iloc[i] and df.ma_fast.iloc[i - 1] > df.ma_slow.iloc[i - 1]:
-                selldates.append(df.index[i])
-                sellprices.append(df.Open[i])
-                position = False
+    positions = generate_buy_sell_dates(df, 'ma_fast', 'ma_slow', stop_loss)
     
-    return {
-        'data': {
-            'close': df.Close,
-            'ma_fast': df.ma_fast,
-            'ma_slow': df.ma_slow
-        },
-        'positions': {
-            'buydates': buydates,
-            'selldates': selldates,
-            'buyprices': buyprices,
-            'sellprices': sellprices
-        },
-        'info': {
-            'ticker': ticker,
-            'startdate': start,
-            'pnl': calculate_pnl(sellprices, buyprices),
-            'type': 'overlay'
-        }
-    }
+    return convert_to_json(
+        type='overlay',
+        ticker=ticker,
+        start=start,
+        positions=positions,
+        close=df.Close,
+        ma_fast=df.ma_fast,
+        ma_slow=df.ma_slow
+    )
 
-def macd(ticker, start):
+def macd(ticker, start, stop_loss):
     df = yf.download(ticker, start=start)
+
+    if df.empty:
+        return responses.INVALID_TICKER
 
     df['ema_12'] = df.Close.ewm(span=12).mean()
     df['ema_26'] = df.Close.ewm(span=26).mean()
     df['macd'] = df.ema_12 - df.ema_26
     df['signal'] = df.macd.ewm(span=9).mean()
 
-    position = False
-    buydates, selldates = [], []
-    buyprices, sellprices = [], []
+    df.dropna(inplace=True)
 
-    for i in range(2, len(df)):
-        if not position:
-            if df.macd.iloc[i] > df.signal.iloc[i] and df.macd.iloc[i - 1] < df.signal.iloc[i - 1]:
-                buydates.append(df.index[i])
-                buyprices.append(df.Open[i])
-                position = True
-        
-        if position:
-            if df.macd.iloc[i] < df.signal.iloc[i] and df.macd.iloc[i - 1] > df.signal.iloc[i - 1]:
-                selldates.append(df.index[i])
-                sellprices.append(df.Open[i])
-                position = False
+    positions = generate_buy_sell_dates(df, 'macd', 'signal', stop_loss)
     
-    return {
-        'data': {
-            'close': df.Close,
-            'macd': df.macd,
-            'signal': df.signal
-        },
-        'positions': {
-            'buydates': buydates,
-            'selldates': selldates,
-            'buyprices': buyprices,
-            'sellprices': sellprices
-        },
-        'info': {
-            'ticker': ticker,
-            'startdate': start,
-            'pnl': calculate_pnl(sellprices, buyprices),
-            'type': 'oscillator'
-        }
-    }
+    return convert_to_json(
+        'oscillator',
+        ticker,
+        start,
+        positions,
+        close=df.Close,
+        macd=df.macd,
+        signal=df.signal
+    )
 
+def ichimoku_cloud(ticker, start, stop_loss):
+    df = yf.download(ticker, start=start)
+
+    if df.empty:
+        return responses.INVALID_TICKER
+
+    # calculate conversion line
+    df['conversion'] = (df.Close.rolling(9).max() + df.Close.rolling(9).min()) / 2
+
+    # calculate base line
+    df['base'] = (df.Close.rolling(26).max() + df.Close.rolling(26).min()) / 2
+
+    # calculate leading span A
+    df['leading_a'] = ((df.conversion + df.base) / 2).shift(26)
+
+    # calculate leading span B
+    df['leading_b'] = ((df.Close.rolling(52).max() + df.Close.rolling(52).min()) / 2).shift(26)
+
+    df.dropna(inplace=True)
+
+    positions = generate_buy_sell_dates(df, 'leading_a', 'leading_b', stop_loss)
+
+    return convert_to_json(
+        type='overlay',
+        ticker=ticker,
+        start=start,
+        positions=positions,
+        close=df.Close,
+        leading_a=df.leading_a,
+        leading_b=df.leading_b
+    ) 
 
 def supertrend(ticker, start, period, multiplier):
     df = yf.download(ticker, start=start)
+
+    if df.empty:
+        return responses.INVALID_TICKER
 
     # calculate true range
     df['previous_close'] = df.Close.shift()
     df['H-L'] = df.High - df.Low
     df['H-Cp'] = abs(df.High - df.previous_close)
     df['L-Cp'] = abs(df.Low - df.previous_close)
-    df.dropna(inplace=True)
+
     df['tr'] = df[['H-L', 'H-Cp', 'L-Cp']].max(axis=1)
 
     # calculate average true range
-    df['atr'] = df['tr'].rolling(14).mean()
+    df['atr'] = df['tr'].rolling(int(period)).mean()
 
     # calculate basic upper and lower bands
     df['upperband'] = ((df.High + df.Low) / 2) + (multiplier * df['atr'])
