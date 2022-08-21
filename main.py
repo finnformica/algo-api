@@ -45,9 +45,8 @@ def supertrend(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE,
     return core.strategies.supertrend(ticker, start, int(period), float(multiplier))
 
 @app.get("/volatility")
-def volatility(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE):
-    return core.strategies.supertrend(ticker, start)
-
+def volatility(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14):
+    return core.strategies.volatility(ticker, start, period)
 
 # fear and greed
-# volatility
+# Keltner Channel

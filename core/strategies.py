@@ -7,6 +7,23 @@ pd.options.mode.chained_assignment = None
 from core.utils import generate_buy_sell_dates, convert_to_json
 from core.config import responses
 
+def volatility(ticker, start, period):
+    df = yf.download(ticker, start=start)
+
+    df['stdev'] = df.rolling(period).std()
+    df['volatility'] = df.stdev**2
+
+    return convert_to_json(
+        'oscillator',
+        ticker,
+        start,
+        positions=False,
+        close=df.Close,
+        stdev=df.stdev,
+        volatility=df.volatility
+    )
+
+
 def average_true_range(ticker, start, period):
     df = yf.download(ticker, start=start)
 
