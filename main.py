@@ -15,9 +15,9 @@ def ichimoku_cloud(ticker="MSFT", start="2019-01-01", stop_loss=1):
 def macd(ticker="MSFT", start="2022-01-01", stop_loss=0.05):
     return core.strategies.macd(ticker, start, float(stop_loss))
 
-@app.get("/mean-reversion-bollinger-band")
-def mean_reversion_bollinger_band(ticker="MSFT", start="2019-01-01", stop_loss=0.05):
-    return core.strategies.mean_reversion_bollinger_band(ticker, start, float(stop_loss))
+@app.get("/bollinger-band")
+def bollinger_band(ticker="MSFT", start="2019-01-01", stop_loss=0.05):
+    return core.strategies.bollinger_band(ticker, start, float(stop_loss))
 
 @app.get("/moving-average-crossover")
 def moving_average_crossover(ticker="MSFT", start="2019-01-01", stop_loss=0.05, ma_fast=20, ma_slow=50):

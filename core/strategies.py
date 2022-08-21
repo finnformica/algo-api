@@ -1,3 +1,5 @@
+from lib2to3.pytree import convert
+from xml.dom.pulldom import START_ELEMENT
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -7,7 +9,7 @@ pd.options.mode.chained_assignment = None
 from core.utils import calculate_pnl, generate_buy_sell_dates, convert_to_json
 from core.config import responses
 
-def mean_reversion_bollinger_band(ticker, start, stop_loss):
+def bollinger_band(ticker, start, stop_loss):
     df = yf.download(ticker, start=start)
 
     if df.empty:
@@ -47,25 +49,20 @@ def mean_reversion_bollinger_band(ticker, start, stop_loss):
                 sellprices.append(row.Open)
                 position = False
     
-    return {
-        'data': {
-            'close': df.Close,
-            'upper_bb': df.upper_bb,
-            'lower_bb': df.lower_bb
-        },
-        'positions': {
+    return convert_to_json(
+        'overlay',
+        ticker,
+        start,
+        {
             'buydates': buydates,
             'selldates': selldates,
             'buyprices': buyprices,
             'sellprices': sellprices
         },
-        'info': {
-            'ticker': ticker,
-            'startdate': start,
-            'pnl': calculate_pnl(sellprices, buyprices),
-            'type': 'overlay'
-        }
-    }
+        close=df.Close,
+        upper_bb=df.upper_bb,
+        lower_bb=df.lower_bb
+    )
 
 def moving_average_crossover(ticker, start, stop_loss, ma_fast, ma_slow):
     df = yf.download(ticker, start=start)
@@ -121,16 +118,9 @@ def ichimoku_cloud(ticker, start, stop_loss):
     if df.empty:
         return responses.INVALID_TICKER
 
-    # calculate conversion line
     df['conversion'] = (df.Close.rolling(9).max() + df.Close.rolling(9).min()) / 2
-
-    # calculate base line
     df['base'] = (df.Close.rolling(26).max() + df.Close.rolling(26).min()) / 2
-
-    # calculate leading span A
     df['leading_a'] = ((df.conversion + df.base) / 2).shift(26)
-
-    # calculate leading span B
     df['leading_b'] = ((df.Close.rolling(52).max() + df.Close.rolling(52).min()) / 2).shift(26)
 
     df.dropna(inplace=True)
@@ -201,22 +191,18 @@ def supertrend(ticker, start, period, multiplier):
             if not df.in_uptrend.iloc[i] and df.upperband.iloc[i] > df.upperband.iloc[i-1]:
                 df.upperband.iloc[i] = df.upperband.iloc[i-1]
 
-    return {
-        'data': {
-            'close': df.Close,
-            'upperband': df.upperband,
-            'lowerband': df.lowerband
-        },
-        'positions': {
+
+    return convert_to_json(
+        'overlay',
+        ticker,
+        start,
+        {
             'buydates': buydates,
             'selldates': selldates,
             'buyprices': buyprices,
             'sellprices': sellprices
         },
-        'info': {
-            'ticker': ticker,
-            'startdate': start,
-            'pnl': calculate_pnl(sellprices, buyprices),
-            'type': 'overlay'
-        }
-    }
+        close=df.Close,
+        upperband=df.upperband,
+        lowerband=df.lowerband
+    )
