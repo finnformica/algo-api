@@ -1,5 +1,3 @@
-from lib2to3.pytree import convert
-from xml.dom.pulldom import START_ELEMENT
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -8,6 +6,26 @@ pd.options.mode.chained_assignment = None
 
 from core.utils import generate_buy_sell_dates, convert_to_json
 from core.config import responses
+
+def average_true_range(ticker, start, period):
+    df = yf.download(ticker, start=start)
+
+    if df.empty:
+        return responses.INVALID_TICKER
+
+    df['range'] = df.High - df.Low
+    df['atr'] = df.range.rolling(period).mean()
+
+    df.dropna(inplace=True)
+
+    return convert_to_json(
+        'oscillator',
+        ticker,
+        start,
+        positions=False,
+        close=df.Close,
+        atr=df.atr
+    )
 
 def stochastic_rsi(ticker, start, period):
     df = yf.download(ticker, start=start)
@@ -22,14 +40,15 @@ def stochastic_rsi(ticker, start, period):
 
     df.dropna(inplace=True)
 
-    return {
-        'data': {
-            'close': df.Close,
-            'k': df.stochastic_rsi_k,
-            'd': df.stochastic_rsi_d
-        }
-    }
-
+    return convert_to_json(
+        'oscillator',
+        ticker,
+        start,
+        positions=False,
+        close=df.Close,
+        k=df.stochastic_rsi_k,
+        d=df.stochastic_rsi_d
+    )
 
 def stochastic_oscillator(ticker, start, period):
     df = yf.download(ticker, start=start)
@@ -41,12 +60,14 @@ def stochastic_oscillator(ticker, start, period):
 
     df.dropna(inplace=True)
 
-    return {
-        'data': {
-            'close': df.Close,
-            'stoch_oscillator': df.stoch_oscillator
-        }
-    }
+    return convert_to_json(
+        'oscillator',
+        ticker,
+        start,
+        positions=False,
+        close=df.Close,
+        stoch_oscillator=df.stoch_oscillator
+    )
 
 def rsi(ticker, start, period, stop_loss):
     df = yf.download(ticker, start=start)

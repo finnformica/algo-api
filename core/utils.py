@@ -29,13 +29,24 @@ def generate_buy_sell_dates(df, column1, column2, stop_loss):
         }
 
 def convert_to_json(type, ticker, start, positions, **kwargs):
-    return {
-        'data': { key: value for key, value in kwargs.items()},
-        'positions': positions,
-        'info': {
-            'ticker': ticker,
-            'startdate': start,
-            'pnl': calculate_pnl(positions['sellprices'], positions['buyprices']),
-            'type': type
+    if positions:
+        return {
+            'data': { key: value for key, value in kwargs.items()},
+            'positions': positions,
+            'info': {
+                'ticker': ticker,
+                'startdate': start,
+                'pnl': calculate_pnl(positions['sellprices'], positions['buyprices']),
+                'type': type
+            }
         }
-    }
+    
+    else:
+        return {
+            'data': { key: value for key, value in kwargs.items()},
+            'info': {
+                'ticker': ticker,
+                'startdate': start,
+                'type': type
+            }
+        }

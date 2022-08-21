@@ -9,8 +9,8 @@ app = FastAPI(
 )
 
 @app.get("/average-true-range")
-def average_true_range(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE):
-    return core.strategies.average_true_range(ticker, start)
+def average_true_range(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14):
+    return core.strategies.average_true_range(ticker, start, int(period))
 
 @app.get("/bollinger-band")
 def bollinger_band(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, stop_loss=settings.DEFAULT_STOPLOSS):
@@ -37,12 +37,16 @@ def stochastic_oscillator(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT
     return core.strategies.stochastic_oscillator(ticker, start, int(period))
 
 @app.get("/stochastic-rsi")
-def stochastic_rsi(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14, stop_loss=settings.DEFAULT_STOPLOSS):
+def stochastic_rsi(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14):
     return core.strategies.stochastic_rsi(ticker, start, int(period))
 
 @app.get("/supertrend")
 def supertrend(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14, multiplier=2.5):
     return core.strategies.supertrend(ticker, start, int(period), float(multiplier))
+
+@app.get("/volatility")
+def volatility(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE):
+    return core.strategies.supertrend(ticker, start)
 
 
 # fear and greed
