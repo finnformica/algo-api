@@ -6,8 +6,103 @@ import numpy as np
 import ta
 pd.options.mode.chained_assignment = None
 
-from core.utils import calculate_pnl, generate_buy_sell_dates, convert_to_json
+from core.utils import generate_buy_sell_dates, convert_to_json
 from core.config import responses
+
+def stochastic_rsi(ticker, start, period):
+    df = yf.download(ticker, start=start)
+
+    df['rsi'] = ta.momentum.rsi(df.Close, window=period)
+
+    df['period_low'] = df.rsi.rolling(period).min()
+    df['period_high'] = df.rsi.rolling(period).max()
+
+    df['stochastic_rsi_k'] = (100 * (df.rsi - df.period_low) / (df.period_high - df.period_low)).rolling(3).mean()
+    df['stochastic_rsi_d'] = df.stochastic_rsi_k.rolling(3).mean()
+
+    df.dropna(inplace=True)
+
+    return {
+        'data': {
+            'close': df.Close,
+            'k': df.stochastic_rsi_k,
+            'd': df.stochastic_rsi_d
+        }
+    }
+
+
+def stochastic_oscillator(ticker, start, period):
+    df = yf.download(ticker, start=start)
+
+    df['period_low'] = df.Low.rolling(period).min()
+    df['period_high'] = df.High.rolling(period).max()
+
+    df['stoch_oscillator'] = (df.Close - df.period_low) / (df.period_high - df.period_low)
+
+    df.dropna(inplace=True)
+
+    return {
+        'data': {
+            'close': df.Close,
+            'stoch_oscillator': df.stoch_oscillator
+        }
+    }
+
+def rsi(ticker, start, period, stop_loss):
+    df = yf.download(ticker, start=start)
+
+    if df.empty:
+        return responses.INVALID_TICKER
+
+    df['delta'] = df.Close.diff(1)
+
+    up = df.delta.copy()
+    down = df.delta.copy()
+
+    up[up < 0] = 0
+    down[down > 0] = 0
+
+    df['up'] = up
+    df['down'] = down
+
+    df['avg_gain'] = df.up.rolling(period).mean()
+    df['avg_loss'] = abs(df.down.rolling(period).mean())
+    df['relative_strength'] = df.avg_gain / df.avg_loss
+
+    df['rsi'] = 100 - (100 / (1 + df.relative_strength))
+
+    df.dropna(inplace=True)
+
+    position = False
+    buydates, selldates = [], []
+    buyprices, sellprices = [], []
+
+    for i in range(2, len(df)):
+        if not position:
+            if df.rsi.iloc[i] < 30:
+                buydates.append(df.index[i])
+                buyprices.append(df.Open.iloc[i])
+                position = True
+        
+        if position:
+            if df.rsi.iloc[i] > 70 or df.Close.iloc[i] < (1 - int(stop_loss)) * buyprices[-1]:
+                selldates.append(df.index[i])
+                sellprices.append(df.Open.iloc[i])
+                position = False
+    
+    return convert_to_json(
+        'oscillator',
+        ticker,
+        start,
+        {
+            'buydates': buydates,
+            'selldates': selldates,
+            'buyprices': buyprices,
+            'sellprices': sellprices
+        },
+        close=df.Close,
+        rsi=df.rsi
+    )
 
 def bollinger_band(ticker, start, stop_loss):
     df = yf.download(ticker, start=start)
