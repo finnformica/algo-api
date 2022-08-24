@@ -1,3 +1,5 @@
+from socket import if_nameindex
+import uvicorn
 from fastapi import FastAPI
 from core.config import settings
 
@@ -59,3 +61,6 @@ def volatility(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE,
 
 # fear and greed
 # Keltner Channel
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
