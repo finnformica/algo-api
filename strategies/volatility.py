@@ -21,7 +21,6 @@ def _volatility(ticker, start, period):
         'oscillator',
         ticker,
         start,
-        positions=False,
         close=df.Close,
         stdev=df.stdev,
         volatility=df.volatility

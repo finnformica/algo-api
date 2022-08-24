@@ -26,7 +26,6 @@ def _stochastic_rsi(ticker, start, period):
         'oscillator',
         ticker,
         start,
-        positions=False,
         close=df.Close,
         k=df.stochastic_rsi_k,
         d=df.stochastic_rsi_d

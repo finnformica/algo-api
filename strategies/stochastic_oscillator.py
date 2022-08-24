@@ -23,7 +23,6 @@ def _stochastic_oscillator(ticker, start, period):
         'oscillator',
         ticker,
         start,
-        positions=False,
         close=df.Close,
         stoch_oscillator=df.stoch_oscillator
     )
