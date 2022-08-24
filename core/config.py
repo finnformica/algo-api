@@ -5,8 +5,4 @@ class Settings:
     DEFAULT_STARTDATE: str = "2019-01-01"
     DEFAULT_STOPLOSS: int = 1
 
-class Responses:
-    INVALID_TICKER: str = "Response invalid for ticker"
-
 settings = Settings()
-responses = Responses()
