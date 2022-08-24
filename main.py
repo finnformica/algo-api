@@ -14,7 +14,8 @@ from strategies.volatility import _volatility
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    version=settings.PROJECT_VERSION
+    version=settings.PROJECT_VERSION,
+    docs_url="/docs"
 )
 
 @app.get("/average-true-range")
