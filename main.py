@@ -18,6 +18,10 @@ app = FastAPI(
     docs_url="/docs"
 )
 
+@app.get("/")
+def root():
+    return "<h1>Head to /docs for the API documention</h1>"
+
 @app.get("/average-true-range")
 def average_true_range(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14):
     return _average_true_range(ticker, start, int(period))
