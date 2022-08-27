@@ -6,7 +6,7 @@ pd.options.mode.chained_assignment = None
 
 from core.utils import convert_to_json, response_invalid
 
-def _ichimoku_cloud(ticker, start):
+def index(ticker, start):
     df = yf.download(ticker, start=start)
 
     if df.empty:

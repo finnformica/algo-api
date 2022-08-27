@@ -6,7 +6,7 @@ pd.options.mode.chained_assignment = None
 
 from core.utils import convert_to_json, response_invalid
 
-def _moving_average_crossover(ticker, start, ma_fast, ma_slow):
+def index(ticker, start, ma_fast, ma_slow):
     df = yf.download(ticker, start=start)
 
     if df.empty:

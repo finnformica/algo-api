@@ -1,16 +1,7 @@
 from fastapi import FastAPI
 from core.config import settings
 
-from strategies.average_true_range import _average_true_range
-from strategies.bollinger_band import _bollinger_band
-from strategies.ichimoku_cloud import _ichimoku_cloud
-from strategies.macd import _macd
-from strategies.moving_average_crossover import _moving_average_crossover
-from strategies.rsi import _rsi
-from strategies.stochastic_oscillator import _stochastic_oscillator
-from strategies.stochastic_rsi import _stochastic_rsi
-from strategies.supertrend import _supertrend
-from strategies.volatility import _volatility
+import strategies
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -18,49 +9,50 @@ app = FastAPI(
     docs_url="/docs"
 )
 
-@app.get("/")
-def root():
-    return "<h1>Head to /docs for the API documention</h1>"
-
 @app.get("/average-true-range")
 def average_true_range(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14):
-    return _average_true_range(ticker, start, int(period))
+    return strategies.average_true_range.index(ticker, start, int(period))
 
 @app.get("/bollinger-band")
 def bollinger_band(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE):
-    return _bollinger_band(ticker, start)
+    return strategies.bollinger_band.index(ticker, start)
 
 @app.get("/ichimoku-cloud")
 def ichimoku_cloud(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE):
-    return _ichimoku_cloud(ticker, start)
+    return strategies.ichimoku_cloud.index(ticker, start)
 
 @app.get("/macd")
 def macd(ticker=settings.DEFAULT_TICKER, start="2022-01-01"):
-    return _macd(ticker, start)
+    return strategies.macd.index(ticker, start)
 
 @app.get("/moving-average-crossover")
 def moving_average_crossover(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, ma_fast=20, ma_slow=50):
-    return _moving_average_crossover(ticker, start, int(ma_fast), int(ma_slow))
+    return strategies.moving_average_crossover.index(ticker, start, int(ma_fast), int(ma_slow))
 
 @app.get("/rsi")
 def rsi(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14):
-    return _rsi(ticker, start, int(period))
+    return strategies.rsi.index(ticker, start, int(period))
 
 @app.get("/stochastic-oscillator")
 def stochastic_oscillator(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14):
-    return _stochastic_oscillator(ticker, start, int(period))
+    return strategies.stochastic_oscillator.index(ticker, start, int(period))
 
 @app.get("/stochastic-rsi")
 def stochastic_rsi(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14):
-    return _stochastic_rsi(ticker, start, int(period))
+    return strategies.stochastic_rsi.index(ticker, start, int(period))
 
 @app.get("/supertrend")
 def supertrend(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14, multiplier=2.5):
-    return _supertrend(ticker, start, int(period), float(multiplier))
+    return strategies.supertrend.index(ticker, start, int(period), float(multiplier))
 
 @app.get("/volatility")
 def volatility(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14):
-    return _volatility(ticker, start, int(period))
+    return strategies.volatility.index(ticker, start, int(period))
 
 # fear and greed
 # Keltner Channel
+# Market Liberator
+# Market Cipher
+# VuManChu Cipher
+# ADX
+#

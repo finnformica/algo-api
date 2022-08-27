@@ -6,7 +6,7 @@ pd.options.mode.chained_assignment = None
 
 from core.utils import convert_to_json, response_invalid
 
-def _average_true_range(ticker, start, period):
+def index(ticker, start, period):
     df = yf.download(ticker, start=start)
 
     if df.empty:
@@ -21,7 +21,6 @@ def _average_true_range(ticker, start, period):
         'oscillator',
         ticker,
         start,
-        positions=False,
         close=df.Close,
         atr=df.atr
     )
