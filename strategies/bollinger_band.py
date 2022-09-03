@@ -31,10 +31,10 @@ def index(ticker, start):
     df['shifted_close'] = df.Close.shift()
     
     return convert_to_json(
+        df,
         'overlay',
         ticker,
         start,
-        close=df.Close,
         upper_bb=df.upper_bb,
         lower_bb=df.lower_bb
     )

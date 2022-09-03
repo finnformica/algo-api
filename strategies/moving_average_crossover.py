@@ -18,10 +18,10 @@ def index(ticker, start, ma_fast, ma_slow):
     df.dropna(inplace=True)
     
     return convert_to_json(
+        df,
         type='overlay',
         ticker=ticker,
         start=start,
-        close=df.Close,
         ma_fast=df.ma_fast,
         ma_slow=df.ma_slow
     )

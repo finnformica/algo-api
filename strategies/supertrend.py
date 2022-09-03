@@ -50,10 +50,10 @@ def index(ticker, start, period, multiplier):
 
 
     return convert_to_json(
+        df,
         'overlay',
         ticker,
         start,
-        close=df.Close,
         upperband=df.upperband,
         lowerband=df.lowerband
     )
