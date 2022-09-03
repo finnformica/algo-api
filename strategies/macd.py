@@ -20,10 +20,10 @@ def index(ticker, start):
     df.dropna(inplace=True)
     
     return convert_to_json(
+        df,
         'oscillator',
         ticker,
         start,
-        close=df.Close,
         macd=df.macd,
         signal=df.signal
     )

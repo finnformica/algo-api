@@ -32,9 +32,9 @@ def index(ticker, start, period):
     df.dropna(inplace=True)
     
     return convert_to_json(
+        df,
         'oscillator',
         ticker,
         start,
-        close=df.Close,
         rsi=df.rsi
     )

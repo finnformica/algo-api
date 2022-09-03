@@ -23,10 +23,10 @@ def index(ticker, start, period):
     df.dropna(inplace=True)
 
     return convert_to_json(
+        df,
         'oscillator',
         ticker,
         start,
-        close=df.Close,
         k=df.stochastic_rsi_k,
         d=df.stochastic_rsi_d
     )

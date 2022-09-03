@@ -20,10 +20,10 @@ def index(ticker, start):
     df.dropna(inplace=True)
 
     return convert_to_json(
+        df,
         type='overlay',
         ticker=ticker,
         start=start,
-        close=df.Close,
         leading_a=df.leading_a,
         leading_b=df.leading_b
     ) 
