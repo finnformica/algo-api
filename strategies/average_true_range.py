@@ -22,5 +22,6 @@ def index(ticker, start, period):
         'oscillator',
         ticker,
         start,
+        "average-true-range",
         atr=df.atr
     )

@@ -4,6 +4,8 @@ from core.config import settings
 
 import strategies
 
+# to run app -> uvicorn main:app --reload
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.PROJECT_VERSION,

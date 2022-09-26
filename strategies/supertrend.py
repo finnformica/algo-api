@@ -54,6 +54,7 @@ def index(ticker, start, period, multiplier):
         'overlay',
         ticker,
         start,
+        "supertrend",
         upperband=df.upperband,
         lowerband=df.lowerband
     )

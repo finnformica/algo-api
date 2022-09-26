@@ -24,5 +24,6 @@ def index(ticker, start, period):
         'oscillator',
         ticker,
         start,
+        "stochastic-oscillator",
         stoch_oscillator=df.stoch_oscillator
     )

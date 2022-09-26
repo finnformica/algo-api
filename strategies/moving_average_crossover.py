@@ -22,6 +22,7 @@ def index(ticker, start, ma_fast, ma_slow):
         type='overlay',
         ticker=ticker,
         start=start,
+        name="moving-average-crossover",
         ma_fast=df.ma_fast,
         ma_slow=df.ma_slow
     )

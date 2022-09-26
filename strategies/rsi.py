@@ -36,5 +36,6 @@ def index(ticker, start, period):
         'oscillator',
         ticker,
         start,
+        "rsi",
         rsi=df.rsi
     )

@@ -22,6 +22,7 @@ def index(ticker, start, period):
         'oscillator',
         ticker,
         start,
+        "volatility",
         stdev=df.stdev,
         volatility=df.volatility
     )

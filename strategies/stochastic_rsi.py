@@ -27,6 +27,7 @@ def index(ticker, start, period):
         'oscillator',
         ticker,
         start,
+        "stochastic-rsi",
         k=df.stochastic_rsi_k,
         d=df.stochastic_rsi_d
     )

@@ -35,6 +35,7 @@ def index(ticker, start):
         'overlay',
         ticker,
         start,
+        "bollinger-band",
         upper_bb=df.upper_bb,
         lower_bb=df.lower_bb
     )

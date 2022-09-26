@@ -4,7 +4,7 @@ def calculate_pnl(sellprices, buyprices):
     return (pd.Series([(sell - buy) / buy for sell, buy in zip(sellprices, buyprices)]) + 1).prod() - 1
 
 
-def convert_to_json(df, type, ticker, start, **kwargs):
+def convert_to_json(df, type, ticker, start, name, **kwargs):
     return {
         'price': {
             'open': df.Open,
@@ -16,7 +16,8 @@ def convert_to_json(df, type, ticker, start, **kwargs):
         'info': {
             'ticker': ticker,
             'startdate': start,
-            'type': type
+            'type': type,
+            'name': name
         }
     }
 

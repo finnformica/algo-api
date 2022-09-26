@@ -24,6 +24,7 @@ def index(ticker, start):
         'oscillator',
         ticker,
         start,
+        "macd",
         macd=df.macd,
         signal=df.signal
     )

@@ -24,6 +24,7 @@ def index(ticker, start):
         type='overlay',
         ticker=ticker,
         start=start,
+        name="ichimoku-cloud",
         leading_a=df.leading_a,
         leading_b=df.leading_b
     ) 
