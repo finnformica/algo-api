@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from core.config import settings
 
 import strategies
@@ -19,6 +20,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def docs_redirect():
+    return RedirectResponse(url='/docs')
 
 @app.get("/average-true-range")
 def average_true_range(ticker=settings.DEFAULT_TICKER, start=settings.DEFAULT_STARTDATE, period=14):
